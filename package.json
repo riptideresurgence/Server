@@ -1,0 +1,16 @@
+{
+  "name": "@riptide/server",
+  "version": "0.0.1",
+  "description": "For exposing various functions to the web, via APIs.",
+  "main": "./dist/index",
+  "types": "./dist/index",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "author": "cutymeo / shiinazzz",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}
