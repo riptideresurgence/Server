@@ -1,4 +1,4 @@
-import { HTTP_CODES, COMMON_SERVER_ERRORS, RequestDefiner, ResponseDefiner } from "../common";
+import { HTTP_CODES, COMMON_SERVER_ERRORS, RequestDefiner, ResponseDefiner } from "../route_common";
 
 import * as core from "@riptide/core";
 
@@ -16,7 +16,7 @@ export default new RequestDefiner()
                             .addData("documents", documents)
                     )
                 })
-                .catch((err) => {
+                .catch((err: any) => {
                     resolve(
                         new ResponseDefiner()
                             .code(HTTP_CODES.INTERNAL_SERVER_ERROR)

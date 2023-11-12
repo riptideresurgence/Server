@@ -1,59 +1,79 @@
-import * as core from "@riptide/core";
-
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ResponseDefiner = exports.RequestDefiner = exports.COMMON_SERVER_ERRORS = exports.HTTP_CODES = void 0;
+const core = __importStar(require("@riptide/core"));
 const HTTP_CODES = {
     OK: 200,
     BAD_REQUEST: 400,
     AUTH_ERROR: 401,
     INTERNAL_SERVER_ERROR: 500
-}
-
+};
+exports.HTTP_CODES = HTTP_CODES;
 const COMMON_SERVER_ERRORS = {
     API_KEY_ERROR: "API_KEY_ERROR",
     INVALID_BODY: "INVALID_BODY",
     INVALID_QUERY: "INVALID_QUERY",
     INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR"
-}
-
-type RequestData = {[dataName: string]: any};
-type RequestQueries = {[queryName: string]: any};
-type RequestHandlerFunction = ((data: RequestData, queries: RequestQueries) => ResponseDefiner);
-type RequestAsyncHandlerFunction = ((data: RequestData, queries: RequestQueries) => Promise<ResponseDefiner>);
-
+};
+exports.COMMON_SERVER_ERRORS = COMMON_SERVER_ERRORS;
 class RequestDefiner {
-    private _handlerFunction: RequestHandlerFunction | RequestAsyncHandlerFunction | undefined = undefined;
-
-    public url: string = "unknown";
-    public method: "GET" | "POST" = "GET";
-    public dataDefine: RequestData = {};
-    public queriesDefine: RequestQueries = {};
-    public requireApiKey: boolean = false;
-
+    constructor() {
+        this._handlerFunction = undefined;
+        this.url = "unknown";
+        this.method = "GET";
+        this.dataDefine = {};
+        this.queriesDefine = {};
+        this.requireApiKey = false;
+        this.handlerWrapper = (...args) => this._handler.apply(this, args);
+    }
     // Internal handlers
-    private async _checkForApiKeyHeader(Request: any): Promise<boolean> {
-        let receivedApiKey: string | undefined = Request.headers["x-api-key"];
+    async _checkForApiKeyHeader(Request) {
+        let receivedApiKey = Request.headers["x-api-key"];
         if (receivedApiKey) {
             return await core.database.findApiKeyDocumentFromApiKey(receivedApiKey) != undefined;
         }
-
         return false;
     }
-    private _createDataFromInfo(Request: any): RequestData {
-        let createdData: RequestData = {};
-        let receivedData: RequestQueries = Request.body;
-
-        Object.keys(this.dataDefine).forEach((dataName: string) => {
+    _createDataFromInfo(Request) {
+        let createdData = {};
+        let receivedData = Request.body;
+        Object.keys(this.dataDefine).forEach((dataName) => {
             const dataType = this.dataDefine[dataName];
             let newDataValue = undefined;
             let receivedDataValue = receivedData[dataName];
             if (!receivedDataValue) {
                 return;
             }
-
             if (dataType == "string") {
                 newDataValue = receivedDataValue.toString();
-            } else if (dataType == "int") {
+            }
+            else if (dataType == "int") {
                 newDataValue = parseInt(receivedDataValue.toString());
-            } else if (dataType == "string[]") {
+            }
+            else if (dataType == "string[]") {
                 if (Array.isArray(receivedDataValue)) {
                     newDataValue = [];
                     receivedDataValue.forEach((e) => {
@@ -64,34 +84,32 @@ class RequestDefiner {
                         if (toAdd) {
                             newDataValue.push(toAdd);
                         }
-                    })
+                    });
                 }
             }
-
             if (newDataValue) {
                 createdData[dataName] = newDataValue;
             }
         });
-
         return createdData;
     }
-    private _createQueriesFromInfo(Request: any): RequestQueries {
-        let createdQueries: RequestQueries = {};
-        let receivedQueries: RequestQueries = Request.query;
-
-        Object.keys(this.queriesDefine).forEach((queryName: string) => {
+    _createQueriesFromInfo(Request) {
+        let createdQueries = {};
+        let receivedQueries = Request.query;
+        Object.keys(this.queriesDefine).forEach((queryName) => {
             const queryType = this.queriesDefine[queryName];
             let newQueryValue = undefined;
             let receivedQueryValue = receivedQueries[queryName];
             if (!receivedQueryValue) {
                 return;
             }
-
             if (queryType == "string") {
                 newQueryValue = receivedQueryValue.toString();
-            } else if (queryType == "int") {
+            }
+            else if (queryType == "int") {
                 newQueryValue = parseInt(receivedQueryValue.toString());
-            } else if (queryType == "string[]") {
+            }
+            else if (queryType == "string[]") {
                 if (Array.isArray(receivedQueryValue)) {
                     newQueryValue = [];
                     receivedQueryValue.forEach((e) => {
@@ -102,95 +120,84 @@ class RequestDefiner {
                         if (toAdd) {
                             newQueryValue.push(toAdd);
                         }
-                    })
+                    });
                 }
             }
-
             if (newQueryValue) {
                 createdQueries[queryName] = newQueryValue;
             }
         });
-
         return createdQueries;
     }
-
-    private async _handler(Request: any, Response: any) {
+    async _handler(Request, Response) {
         if (!this._handlerFunction) {
             return;
         }
         if (this.requireApiKey) {
             if (!(await this._checkForApiKeyHeader(Request))) {
-                let responseObject: ResponseDefiner =
-                    new ResponseDefiner()
-                        .code(HTTP_CODES.AUTH_ERROR)
-                        .specificError(COMMON_SERVER_ERRORS.API_KEY_ERROR)
-                        .message("Invalid API key.")
+                let responseObject = new ResponseDefiner()
+                    .code(HTTP_CODES.AUTH_ERROR)
+                    .specificError(COMMON_SERVER_ERRORS.API_KEY_ERROR)
+                    .message("Invalid API key.");
                 return Response.status(responseObject.httpResponseCode).send(responseObject.serialize());
             }
         }
         let data = this._createDataFromInfo(Request);
         let queries = this._createQueriesFromInfo(Request);
-
         // Data validation
         const dataDefineKeys = Object.keys(this.dataDefine);
         for (let i = 0; i < dataDefineKeys.length; i++) {
-            let dataName: string = dataDefineKeys[i];
-            let dataType: string = this.dataDefine[dataName];
-
+            let dataName = dataDefineKeys[i];
+            let dataType = this.dataDefine[dataName];
             if (!data[dataName]) {
-                let responseObject: ResponseDefiner =
-                    new ResponseDefiner()
-                        .code(HTTP_CODES.BAD_REQUEST)
-                        .specificError(COMMON_SERVER_ERRORS.INVALID_BODY)
-                        .message(`Data "${dataName}" must exist in JSON body and be of type "${dataType}".`)
+                let responseObject = new ResponseDefiner()
+                    .code(HTTP_CODES.BAD_REQUEST)
+                    .specificError(COMMON_SERVER_ERRORS.INVALID_BODY)
+                    .message(`Data "${dataName}" must exist in JSON body and be of type "${dataType}".`);
                 return Response.status(responseObject.httpResponseCode).send(responseObject.serialize());
             }
         }
         // Query validation
         const queriesDefineKeys = Object.keys(this.queriesDefine);
         for (let i = 0; i < queriesDefineKeys.length; i++) {
-            let queryName: string = queriesDefineKeys[i];
-            let queryType: string = this.queriesDefine[queryName];
-
+            let queryName = queriesDefineKeys[i];
+            let queryType = this.queriesDefine[queryName];
             if (!queries[queryName]) {
-                let responseObject: ResponseDefiner =
-                    new ResponseDefiner()
-                        .code(HTTP_CODES.BAD_REQUEST)
-                        .specificError(COMMON_SERVER_ERRORS.INVALID_QUERY)
-                        .message(`Query "${queryName}" must exist and be of type "${queryType}".`)
+                let responseObject = new ResponseDefiner()
+                    .code(HTTP_CODES.BAD_REQUEST)
+                    .specificError(COMMON_SERVER_ERRORS.INVALID_QUERY)
+                    .message(`Query "${queryName}" must exist and be of type "${queryType}".`);
                 return Response.status(responseObject.httpResponseCode).send(responseObject.serialize());
             }
         }
-
-        let responseObject: ResponseDefiner = this._handlerFunction.constructor.name === "AsyncFunction" ? await (this._handlerFunction(data, queries) as Promise<ResponseDefiner>) : this._handlerFunction(data, queries) as ResponseDefiner;
+        let responseObject = this._handlerFunction.constructor.name === "AsyncFunction" ? await this._handlerFunction(data, queries) : this._handlerFunction(data, queries);
         Response.status(responseObject.httpResponseCode).send(responseObject.serialize());
     }
-
     // Setters
-    public usingUrl(url: string) {
+    usingUrl(url) {
         this.url = url;
         return this;
     }
-    public requestMethod(method: "GET" | "POST") {
+    requestMethod(method) {
         this.method = method;
         return this;
     }
-    public setDataBody(dataInfo: RequestData) {
+    setDataBody(dataInfo) {
         this.dataDefine = dataInfo;
         return this;
     }
-    public setQuery(queriesInfo: RequestQueries) {
+    setQuery(queriesInfo) {
         this.queriesDefine = queriesInfo;
         return this;
     }
-    public needApiKey(need: boolean) {
+    needApiKey(need) {
         this.requireApiKey = true;
         return this;
     }
-
     // Main handler
-    public on(handlerFunction: RequestHandlerFunction | RequestAsyncHandlerFunction) {
+    on(handlerFunction) {
         this._handlerFunction = handlerFunction;
+        return this;
         /*this._frontend._worker.bind(
             this.url,
             // if passed the function, "this" context will be gone
@@ -202,27 +209,28 @@ class RequestDefiner {
         );*/
     }
 }
-
+exports.RequestDefiner = RequestDefiner;
 class ResponseDefiner {
-    public httpResponseCode: number = 200;
-    public responseMessage: string | undefined = undefined
-    public error: string | undefined = undefined;
-    public data: {[name: string]: any} | undefined = undefined;
-
+    constructor() {
+        this.httpResponseCode = 200;
+        this.responseMessage = undefined;
+        this.error = undefined;
+        this.data = undefined;
+    }
     // Setters
-    public code(code: number) {
+    code(code) {
         this.httpResponseCode = code;
         return this;
     }
-    public message(message: string | undefined) {
+    message(message) {
         this.responseMessage = message;
         return this;
     }
-    public specificError(error: string | undefined) {
+    specificError(error) {
         this.error = error;
         return this;
     }
-    public addData(dataName: string, dataValue: any) {
+    addData(dataName, dataValue) {
         if (!this.data) {
             this.data = {};
         }
@@ -232,23 +240,13 @@ class ResponseDefiner {
         this.data[dataName] = dataValue;
         return this;
     }
-
     // Main thingy
-    public serialize() {
+    serialize() {
         return {
             errorMessage: this.error,
             message: this.responseMessage,
             data: this.data
-        }
+        };
     }
 }
-
-export {
-    HTTP_CODES,
-    COMMON_SERVER_ERRORS,
-
-    RequestData,
-    RequestQueries,
-    RequestDefiner,
-    ResponseDefiner
-}
+exports.ResponseDefiner = ResponseDefiner;

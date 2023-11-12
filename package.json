@@ -4,7 +4,9 @@
   "description": "For exposing various functions to the web, via APIs.",
   "main": "./dist/index",
   "types": "./dist/index",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc --build"
   },
@@ -12,5 +14,8 @@
   "private": true,
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "fastify": "^4.24.3"
+  }
 }
