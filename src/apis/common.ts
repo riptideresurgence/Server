@@ -1,5 +1,19 @@
 import * as core from "@riptide/core";
 
+const HTTP_CODES = {
+    OK: 200,
+    BAD_REQUEST: 400,
+    AUTH_ERROR: 401,
+    INTERNAL_SERVER_ERROR: 500
+}
+
+const COMMON_SERVER_ERRORS = {
+    API_KEY_ERROR: "API_KEY_ERROR",
+    INVALID_BODY: "INVALID_BODY",
+    INVALID_QUERY: "INVALID_QUERY",
+    INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR"
+}
+
 type RequestData = {[dataName: string]: any};
 type RequestQueries = {[queryName: string]: any};
 type RequestHandlerFunction = ((data: RequestData, queries: RequestQueries) => ResponseDefiner);
@@ -13,14 +27,12 @@ class RequestDefiner {
     public dataDefine: RequestData = {};
     public queriesDefine: RequestQueries = {};
     public requireApiKey: boolean = false;
-    public mustBeBalancer: boolean = false;
-    public processPower: number = 0;
 
     // Internal handlers
     private async _checkForApiKeyHeader(Request: any): Promise<boolean> {
         let receivedApiKey: string | undefined = Request.headers["x-api-key"];
         if (receivedApiKey) {
-            return await core.database.
+            return await core.database.findApiKeyDocumentFromApiKey(receivedApiKey) != undefined;
         }
 
         return false;
@@ -155,10 +167,6 @@ class RequestDefiner {
     }
 
     // Setters
-    public attachServerFrontend(frontend: ServerFrontendV2) {
-        this._frontend = frontend;
-        return this;
-    }
     public usingUrl(url: string) {
         this.url = url;
         return this;
@@ -179,19 +187,11 @@ class RequestDefiner {
         this.requireApiKey = true;
         return this;
     }
-    public balancerOnly(balancerOnly: boolean) {
-        this.mustBeBalancer = balancerOnly;
-        return this;
-    }
-    public requireProcessPower(power: number) {
-        this.processPower = power;
-        return this;
-    }
 
     // Main handler
     public on(handlerFunction: RequestHandlerFunction | RequestAsyncHandlerFunction) {
         this._handlerFunction = handlerFunction;
-        this._frontend._worker.bind(
+        /*this._frontend._worker.bind(
             this.url,
             // if passed the function, "this" context will be gone
             // hence we create a new function
@@ -199,7 +199,7 @@ class RequestDefiner {
             this.method,
             this.mustBeBalancer,
             this.processPower
-        );
+        );*/
     }
 }
 
@@ -241,4 +241,14 @@ class ResponseDefiner {
             data: this.data
         }
     }
+}
+
+export {
+    HTTP_CODES,
+    COMMON_SERVER_ERRORS,
+
+    RequestData,
+    RequestQueries,
+    RequestDefiner,
+    ResponseDefiner
 }
