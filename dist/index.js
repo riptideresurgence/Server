@@ -27,7 +27,7 @@ function createInstance(port = 8080) {
             serverInstance.post(routeDefiner.url, async (request, response) => routeDefiner.handlerWrapper(request, response));
         }
     }
-    serverInstance.listen({ port: port })
+    serverInstance.listen({ host: "0.0.0.0", port: port })
         .then(() => {
         console.log(`Server is now listening at port ${port}.`);
     })
