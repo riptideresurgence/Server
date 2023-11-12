@@ -9,6 +9,10 @@ export function createInstance(port: number = 8080) {
         logger: false
     });
 
+    serverInstance.get("/", () => {
+        return "hi there's nothing in here lulz!"
+    });
+
     // Scan route modules
     const routesPath = path.join(__dirname, "routes");
     const routeFiles = fs.readdirSync(routesPath).filter(
