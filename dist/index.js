@@ -11,6 +11,9 @@ function createInstance(port = 8080) {
     const serverInstance = (0, fastify_1.fastify)({
         logger: false
     });
+    serverInstance.get("/", () => {
+        return "hi there's nothing in here lulz!";
+    });
     // Scan route modules
     const routesPath = path_1.default.join(__dirname, "routes");
     const routeFiles = fs_1.default.readdirSync(routesPath).filter(file => (file.endsWith('.js') || file.endsWith('.ts')) && !file.endsWith('.d.ts'));

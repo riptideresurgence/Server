@@ -139,7 +139,7 @@ class RequestDefiner {
                     .code(HTTP_CODES.AUTH_ERROR)
                     .specificError(COMMON_SERVER_ERRORS.API_KEY_ERROR)
                     .message("Invalid API key.");
-                return Response.status(responseObject.httpResponseCode).send(responseObject.serialize());
+                return Response.code(responseObject.httpResponseCode).send(responseObject.serialize());
             }
         }
         let data = this._createDataFromInfo(Request);
@@ -154,7 +154,7 @@ class RequestDefiner {
                     .code(HTTP_CODES.BAD_REQUEST)
                     .specificError(COMMON_SERVER_ERRORS.INVALID_BODY)
                     .message(`Data "${dataName}" must exist in JSON body and be of type "${dataType}".`);
-                return Response.status(responseObject.httpResponseCode).send(responseObject.serialize());
+                return Response.code(responseObject.httpResponseCode).send(responseObject.serialize());
             }
         }
         // Query validation
@@ -167,11 +167,11 @@ class RequestDefiner {
                     .code(HTTP_CODES.BAD_REQUEST)
                     .specificError(COMMON_SERVER_ERRORS.INVALID_QUERY)
                     .message(`Query "${queryName}" must exist and be of type "${queryType}".`);
-                return Response.status(responseObject.httpResponseCode).send(responseObject.serialize());
+                return Response.code(responseObject.httpResponseCode).send(responseObject.serialize());
             }
         }
         let responseObject = this._handlerFunction.constructor.name === "AsyncFunction" ? await this._handlerFunction(data, queries) : this._handlerFunction(data, queries);
-        Response.status(responseObject.httpResponseCode).send(responseObject.serialize());
+        Response.code(responseObject.httpResponseCode).send(responseObject.serialize());
     }
     // Setters
     usingUrl(url) {
