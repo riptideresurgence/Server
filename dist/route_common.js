@@ -191,7 +191,7 @@ class RequestDefiner {
         return this;
     }
     needApiKey(need) {
-        this.requireApiKey = true;
+        this.requireApiKey = need;
         return this;
     }
     // Main handler

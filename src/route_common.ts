@@ -185,7 +185,7 @@ class RequestDefiner {
         return this;
     }
     public needApiKey(need: boolean) {
-        this.requireApiKey = true;
+        this.requireApiKey = need;
         return this;
     }
 
