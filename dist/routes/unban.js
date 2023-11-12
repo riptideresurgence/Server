@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const route_common_1 = require("../route_common");
 const core = __importStar(require("@riptide/core"));
-exports.default = new route_common_1.RequestDefiner()
+module.exports = new route_common_1.RequestDefiner()
     .usingUrl("/api/player/unban")
     .requestMethod("POST")
     .setDataBody({

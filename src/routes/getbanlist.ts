@@ -2,7 +2,7 @@ import { HTTP_CODES, COMMON_SERVER_ERRORS, RequestDefiner, ResponseDefiner } fro
 
 import * as core from "@riptide/core";
 
-export default new RequestDefiner()
+module.exports = new RequestDefiner()
     .usingUrl("/api/player/fetchbanlist")
     .requestMethod("GET")
     .needApiKey(false)

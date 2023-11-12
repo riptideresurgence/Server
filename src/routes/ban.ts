@@ -2,7 +2,7 @@ import { HTTP_CODES, COMMON_SERVER_ERRORS, RequestDefiner, RequestData, Response
 
 import * as core from "@riptide/core";
 
-export default new RequestDefiner()
+module.exports = new RequestDefiner()
     .usingUrl("/api/player/ban")
     .requestMethod("POST")
     .setDataBody({

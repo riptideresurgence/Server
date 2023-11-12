@@ -1,6 +1,6 @@
 import { HTTP_CODES, RequestDefiner, ResponseDefiner } from "../route_common";
 
-export default new RequestDefiner()
+module.exports = new RequestDefiner()
     .usingUrl("/test")
     .requestMethod("GET")
     .needApiKey(false)

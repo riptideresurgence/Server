@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const route_common_1 = require("../route_common");
-exports.default = new route_common_1.RequestDefiner()
+module.exports = new route_common_1.RequestDefiner()
     .usingUrl("/test")
     .requestMethod("GET")
     .needApiKey(false)
